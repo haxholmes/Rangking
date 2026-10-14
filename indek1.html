@@ -1,0 +1,385 @@
+
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>NilaiLab - Kalkulator Nilai</title>
+<style>
+*{box-sizing:border-box}
+body{margin:0;background:#111214;color:#e5e7eb;font:14px Arial,sans-serif}
+header{height:62px;border-bottom:1px solid #303136;display:flex;align-items:center;padding:0 22px;gap:12px}
+.logo{background:#6366f1;border-radius:50%;width:34px;height:34px;display:grid;place-items:center;font-weight:bold;color:white}
+header h1{font-size:20px;font-weight:500}
+.layout{display:grid;grid-template-columns:290px minmax(300px,1fr) 255px;min-height:calc(100vh - 62px)}
+.panel{padding:18px;min-width:0}
+.left{border-right:1px solid #38383c}
+.right{border-left:1px solid #38383c}
+h2{font-size:17px;margin:4px 0 18px}
+h3{font-size:15px}
+small,.muted{color:#a1a1aa}
+input{width:100%;padding:10px;background:#292a2e;border:1px solid #414147;color:white;border-radius:8px;outline:none}
+input:focus{border-color:#818cf8}
+.subject{background:#202124;border:1px solid #37383d;padding:11px;border-radius:10px;margin-bottom:9px}
+.subject label{display:block;margin-bottom:8px}
+.subject input{padding:8px}
+.optional{display:flex;align-items:center;justify-content:space-between;gap:8px;margin:12px 0 16px;padding:10px;background:#24202b;border-radius:9px}
+button{background:#292a2e;border:1px solid #424249;color:#eee;padding:11px;border-radius:9px;cursor:pointer;text-align:left}
+button:hover{border-color:#818cf8}
+button.active{background:#34304c;border-color:#818cf8;color:#c4b5fd}
+button.primary{background:#6366f1;color:white;border:0;text-align:center}
+.toggle{font-size:12px;padding:8px}
+.menu{width:100%;display:block;margin:10px 0}
+.center{padding:26px;max-width:900px;width:100%;margin:auto}
+.banner{padding:24px;border-radius:16px;background:linear-gradient(135deg,#312e81,#4338ca);margin-bottom:22px}
+.banner h2{font-size:24px;margin:0 0 8px}
+.card{background:#202124;border:1px solid #393a40;border-radius:14px;padding:18px;margin-bottom:14px}
+.big{font-size:48px;font-weight:bold;color:#a5b4fc;margin:12px 0}
+.pill{display:inline-block;border-radius:20px;padding:7px 10px;background:#34304c;color:#c4b5fd;font-size:12px}
+.row{display:flex;justify-content:space-between;gap:12px;align-items:center}
+.bar{height:7px;background:#38383d;border-radius:10px;overflow:hidden;margin:10px 0}
+.fill{height:100%;background:#818cf8}
+.actions{display:flex;gap:8px;margin-top:14px}
+.actions button{flex:1;text-align:center}
+.result-subject{padding:12px 0;border-bottom:1px solid #38383d}
+.result-subject:last-child{border:0}
+.hidden{display:none}
+.rank{display:flex;gap:10px;align-items:center;padding:12px 0;border-bottom:1px solid #38383d}
+.ranknum{font-size:20px;color:#c4b5fd;min-width:28px}
+.notice{font-size:12px;line-height:1.6;color:#a1a1aa}
+@media(max-width:900px){
+.layout{grid-template-columns:240px minmax(0,1fr)}
+.right{grid-column:1/-1;border-left:0;border-top:1px solid #38383d}
+.right .menu{display:inline-block;width:auto;margin-right:5px}
+}
+@media(max-width:600px){
+.layout{display:flex;flex-direction:column}
+.left,.right{border:0;border-bottom:1px solid #38383d}
+.center{padding:16px}
+}
+</style>
+</head>
+<body>
+<header>
+  <div class="logo">N</div>
+  <h1>NilaiLab</h1>
+  <span class="muted">Kalkulator Pelajaran</span>
+</header>
+
+<div class="layout">
+  <aside class="panel left">
+    <h2>① Pelajaran & Nilai</h2>
+    <p class="muted">Masukkan nilai antara 0–100.</p>
+
+    <div class="optional">
+      <div>
+        <strong>Seni Budaya</strong><br>
+        <small>Pelajaran opsional</small>
+      </div>
+      <button class="toggle" id="seniBtn" type="button">Gunakan</button>
+    </div>
+
+    <div id="subjects"></div>
+    <button class="primary" style="width:100%" id="calculate">
+      Hitung Nilai
+    </button>
+    <button style="width:100%;margin-top:8px" id="reset">Reset Nilai</button>
+  </aside>
+
+  <main class="center">
+    <section class="banner">
+      <h2 id="pageTitle">Analisis Nilai</h2>
+      <p id="pageDescription">Hitung rata-rata dan pahami kemampuanmu.</p>
+    </section>
+
+    <section id="assessment">
+      <div class="card">
+        <small>SKOR RATA-RATA</small>
+        <div class="big" id="average">--</div>
+        <span class="pill" id="grade">Belum dihitung</span>
+        <div class="bar"><div class="fill" id="averageBar" style="width:0%"></div></div>
+        <p class="muted" id="countText">Belum ada nilai yang dihitung.</p>
+      </div>
+
+      <div class="card">
+        <h3>Evaluasi Keseluruhan</h3>
+        <p id="overall">Masukkan nilai pelajaran, lalu tekan Hitung Nilai.</p>
+      </div>
+
+      <div class="card">
+        <h3>Evaluasi Setiap Pelajaran</h3>
+        <div id="evaluations" class="muted">
+          Hasil evaluasi akan muncul di sini.
+        </div>
+      </div>
+    </section>
+
+    <section id="rankingView" class="hidden">
+      <div class="card">
+        <h3>Ikut Ranking</h3>
+        <p class="muted">Hitung nilai terlebih dahulu.</p>
+        <label for="playerName">Nama peserta</label>
+        <input id="playerName" maxlength="40" placeholder="Masukkan nama">
+        <button class="primary" id="join" style="width:100%;margin-top:12px">
+          Simpan Skor ke Ranking
+        </button>
+        <p class="notice">Versi ini menyimpan ranking di browser ini saja.</p>
+      </div>
+      <div class="card">
+        <h3>Papan Ranking</h3>
+        <div id="rankList"></div>
+        <button id="clearRanking" style="margin-top:14px">Hapus Ranking Lokal</button>
+      </div>
+    </section>
+
+    <section id="fullView" class="hidden">
+      <div class="card">
+        <h3>Penilaian Penuh</h3>
+        <p>Semua pelajaran yang aktif wajib diisi. Nilai rata-rata menggunakan pembagian sama rata tanpa bobot.</p>
+        <p class="muted">Aktifkan Seni Budaya jika ingin memasukkannya dalam penilaian.</p>
+        <button class="primary" id="fullCalculate" style="width:100%">
+          Periksa Semua Pelajaran
+        </button>
+        <p id="fullMessage"></p>
+      </div>
+    </section>
+  </main>
+
+  <aside class="panel right">
+    <h2>② Studio</h2>
+    <p class="muted">Pilih mode kalkulasi.</p>
+    <button class="menu active" data-view="assessment">▤ Penilaian Standar</button>
+    <button class="menu" data-view="fullView">▣ Penilaian Penuh</button>
+    <button class="menu" data-view="rankingView">♛ Ranking</button>
+
+    <div class="card" style="margin-top:22px">
+      <h3>Petunjuk</h3>
+      <p class="notice" id="help">
+        Penilaian standar menghitung rata-rata dari nilai yang sudah diisi.
+      </p>
+    </div>
+  </aside>
+</div>
+
+<script>
+const mainSubjects=[
+  "Matematika","Bahasa Indonesia","English","Fisika",
+  "Kimia","Biologi","Sosiologi","Sejarah","Agama",
+  "PKN","Pemberdayaan","Informatika"
+];
+
+let useSeni=false;
+let currentAverage=null;
+let ranking=loadRanking();
+
+const $=id=>document.getElementById(id);
+const subjectArea=$("subjects");
+
+function getSubjects(){
+  return useSeni?[...mainSubjects,"Seni Budaya"]:[...mainSubjects];
+}
+
+function renderSubjects(saved={}){
+  subjectArea.innerHTML="";
+  getSubjects().forEach((name,i)=>{
+    const box=document.createElement("div");
+    box.className="subject";
+    const label=document.createElement("label");
+    label.htmlFor="score"+i;
+    label.textContent=name;
+    const input=document.createElement("input");
+    input.id="score"+i;
+    input.type="number";
+    input.min="0";
+    input.max="100";
+    input.step="any";
+    input.placeholder="Nilai 0–100";
+    input.value=saved[name]??"";
+    input.dataset.name=name;
+    box.append(label,input);
+    subjectArea.append(box);
+  });
+}
+
+function getScores(){
+  const scores={};
+  let valid=true;
+  subjectArea.querySelectorAll("input").forEach(input=>{
+    const raw=input.value.trim();
+    input.style.borderColor="";
+    if(raw===""){scores[input.dataset.name]=null;return;}
+    const n=Number(raw);
+    if(!Number.isFinite(n)||n<0||n>100){
+      valid=false;
+      input.style.borderColor="#ef4444";
+    }else scores[input.dataset.name]=n;
+  });
+  return {scores,valid};
+}
+
+function evaluate(n){
+  if(n>=90)return ["Sangat Baik","Pertahankan prestasi dan coba materi lebih menantang."];
+  if(n>=80)return ["Baik","Pemahaman sudah baik. Perkuat materi yang belum dikuasai."];
+  if(n>=70)return ["Cukup","Tingkatkan latihan pada bagian yang masih sulit."];
+  return ["Perlu Ditingkatkan","Pelajari kembali dasar materi dan latihan secara bertahap."];
+}
+
+function calculate(requireAll=false){
+  const {scores,valid}=getScores();
+  if(!valid){alert("Nilai harus berada pada rentang 0 sampai 100.");return false;}
+  const names=getSubjects();
+  const missing=names.filter(n=>scores[n]===null);
+  if(requireAll&&missing.length){
+    $("fullMessage").textContent="Belum lengkap: "+missing.join(", ");
+    return false;
+  }
+  const filled=names.filter(n=>scores[n]!==null);
+  if(!filled.length){alert("Masukkan minimal satu nilai.");return false;}
+
+  currentAverage=filled.reduce((sum,n)=>sum+scores[n],0)/filled.length;
+  $("average").textContent=currentAverage.toFixed(2);
+  $("averageBar").style.width=currentAverage+"%";
+  $("grade").textContent=evaluate(currentAverage)[0];
+  $("countText").textContent=filled.length+" dari "+names.length+" pelajaran dihitung.";
+  $("overall").textContent=evaluate(currentAverage)[1];
+
+  const out=$("evaluations");
+  out.innerHTML="";
+  names.forEach(name=>{
+    const row=document.createElement("div");
+    row.className="result-subject";
+    const top=document.createElement("div");
+    top.className="row";
+    const title=document.createElement("strong");
+    title.textContent=name;
+    const value=document.createElement("span");
+    if(scores[name]===null){
+      value.textContent="Belum diisi";
+      value.className="muted";
+      row.append(top);
+      top.append(title,value);
+      out.append(row);
+      return;
+    }
+    const [label,message]=evaluate(scores[name]);
+    value.textContent=scores[name]+" · "+label;
+    top.append(title,value);
+    const detail=document.createElement("p");
+    detail.className="notice";
+    detail.textContent=message;
+    row.append(top,detail);
+    out.append(row);
+  });
+
+  if(requireAll)$("fullMessage").textContent="Lengkap! Rata-rata: "+currentAverage.toFixed(2);
+  return true;
+}
+
+function loadRanking(){
+  try{return JSON.parse(localStorage.getItem("nilailab-ranking")||"[]");}
+  catch{return [];}
+}
+
+function saveRanking(){
+  try{
+    localStorage.setItem("nilailab-ranking",JSON.stringify(ranking));
+  }catch{
+    alert("Ranking tidak dapat disimpan di browser ini.");
+  }
+}
+
+function renderRanking(){
+  const list=$("rankList");
+  list.innerHTML="";
+  if(!ranking.length){
+    list.textContent="Belum ada peserta.";
+    return;
+  }
+  [...ranking].sort((a,b)=>b.score-a.score).forEach((person,i)=>{
+    const row=document.createElement("div");
+    row.className="rank";
+    const number=document.createElement("strong");
+    number.className="ranknum";
+    number.textContent="#"+(i+1);
+    const info=document.createElement("div");
+    const name=document.createElement("strong");
+    name.textContent=person.name;
+    const score=document.createElement("div");
+    score.className="muted";
+    score.textContent="Rata-rata: "+person.score.toFixed(2);
+    info.append(name,score);
+    row.append(number,info);
+    list.append(row);
+  });
+}
+
+function showView(view){
+  ["assessment","rankingView","fullView"].forEach(id=>{
+    $(id).classList.toggle("hidden",id!==view);
+  });
+  document.querySelectorAll("[data-view]").forEach(btn=>{
+    btn.classList.toggle("active",btn.dataset.view===view);
+  });
+  const config={
+    assessment:["Penilaian Standar","Hitung rata-rata dari nilai yang terisi.","Nilai kosong diabaikan dalam rata-rata standar."],
+    fullView:["Penilaian Penuh","Pastikan semua pelajaran aktif telah memiliki nilai.","Semua pelajaran aktif wajib diisi dalam mode penuh."],
+    rankingView:["Ranking Peserta","Bandingkan skor rata-rata para peserta.","Ranking lokal hanya tersedia pada browser ini."]
+  }[view];
+  $("pageTitle").textContent=config[0];
+  $("pageDescription").textContent=config[1];
+  $("help").textContent=config[2];
+}
+
+$("seniBtn").onclick=()=>{
+  const old=getScores();
+  useSeni=!useSeni;
+  $("seniBtn").textContent=useSeni?"Digunakan ✓":"Gunakan";
+  const saved=old.scores;
+  renderSubjects(saved);
+};
+$("calculate").onclick=()=>calculate(false);
+$("fullCalculate").onclick=()=>calculate(true);
+
+$("reset").onclick=()=>{
+  renderSubjects();
+  currentAverage=null;
+  $("average").textContent="--";
+  $("averageBar").style.width="0%";
+  $("grade").textContent="Belum dihitung";
+  $("countText").textContent="Belum ada nilai yang dihitung.";
+  $("overall").textContent="Masukkan nilai pelajaran, lalu tekan Hitung Nilai.";
+  $("evaluations").textContent="Hasil evaluasi akan muncul di sini.";
+  $("fullMessage").textContent="";
+};
+
+document.querySelectorAll("[data-view]").forEach(btn=>{
+  btn.onclick=()=>showView(btn.dataset.view);
+});
+
+$("join").onclick=()=>{
+  if(currentAverage===null){
+    alert("Hitung nilai terlebih dahulu.");
+    return;
+  }
+  const name=$("playerName").value.trim();
+  if(!name){alert("Masukkan nama peserta.");return;}
+  ranking.push({name,score:currentAverage});
+  saveRanking();
+  renderRanking();
+  alert("Skor ditambahkan ke ranking lokal.");
+};
+
+$("clearRanking").onclick=()=>{
+  if(confirm("Hapus semua ranking lokal?")){
+    ranking=[];
+    saveRanking();
+    renderRanking();
+  }
+};
+
+renderSubjects();
+renderRanking();
+showView("assessment");
+</script>
+</body>
+</html>
